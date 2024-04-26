@@ -1,0 +1,81 @@
+todo:
+  - triggers:
+      tbl_meads:
+        - potential_abv (when starting_gravity is captured)
+      tbl_ingredient_costs:
+        - lbs (when grams is captured)
+      tbl_abv_measurements:
+        - pct_to_pot_abv
+        - days_since_start
+sql:
+  init_statements:
+    tbl_meads: |
+      create table if not exists meads (
+        id integer primary key
+        , mead_name string not null
+        , start_date date not null
+        , yeast_used string not null
+        , sugar_source string not null
+        , starting_gravity float
+        , potential_abv float
+        , yield_in_oz float
+        , unique(Mead_name, start_date)
+      );
+    tbl_observations: |
+      create table if not exists mead_notes (
+        id integer primary key
+        , mead_id integer not null
+        , note string not null
+        , note_date date not null
+        , foreign key(mead_id) references meads(id)
+      );
+    tbl_activity: |
+      create table if not exists activity (
+        id integer primary key
+        , mead_id integer not null
+        , act_name string not null
+        , act_date date not null
+        , check (act_name in ('started','racked','bottled','modified','other'))
+        , foreign key(mead_id) references meads(id)
+      );
+    tbl_abv_measurements: |
+      create table if not exists abv_measurements (
+        id integer primary  key
+        , mead_id integer not null
+        , sample_date date not null
+        , curr_gravity float not null
+        , curr_abv float not null
+        , days_since_start int
+        , pct_to_pot_abv float
+        , foreign key(mead_id) references meads(id)
+      );
+    tbl_ingredient_costs: |
+      create table if not exists ingredient_costs (
+        id integer primary  key
+        , mead_id integer not null
+        , type string not null
+        , ingredient string not null
+        , cost float not null
+        , grams float not null
+        , lbs float
+        , check (type in ('sugar_src','flavoring','back_sweeten','yeast'))
+        , foreign key(mead_id) references meads(id)
+        );
+
+    v_abv_measurements:
+
+      # potential_abv
+      # pct_to_pot_abv
+      # , days_as_of int
+    v_meads:
+    # will have most of the fields from the tbl_meads but also:
+    # - starting/ending gravity
+    # - sugar cost
+    # , other_ing_cost real
+    # - all ingredient costs
+    # - ending_abv real (captured from abv_measurements tbl)
+    # , ending_gravity float
+    # - stuff from mead activity
+    #   - when started
+    #   - when racked
+    #   - when bottled
