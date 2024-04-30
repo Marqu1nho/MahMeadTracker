@@ -1,5 +1,25 @@
 init_ddl: ./scripts/init_ddl.sql
 sql:
+  ins_new_mead: |
+    insert into meads(
+      mead_name
+      , start_date
+      , yeast_used
+      , sugar_source
+    )
+    values (
+      :mead_name
+      , datetime('now')
+      , :yeast_used
+      , :sugar_source
+    );
+  ins_mead_start_grav: |
+    insert into mead(
+      starting_gravity
+    )
+    values (
+      starting_gravity;
+    );
   ins_activity: |
     insert into activity(
       mead_id
@@ -8,28 +28,62 @@ sql:
     )
     values (
       :mead_id
-      , 'started'
+      , :act_name
       , datetime('now')
-    )
+    );
   ins_abv_meas: |
     insert into abv_measurement (
       mead_id
       , sample_date
       , curr_gravity
+      , days_since_start
+      , pct_to_post_abv
     )
     values (
       :mead_id
-      , date('now')
+      , datetime('now')
       , :curr_grv
+      , :days_since_start
+      , :pct_to_post_abv
     );
-  get_start_gravity: |
-    select starting_gravity
+  ins_mead_ingredient_cost: |
+    inset into ingredient_costs (
+      mead_id
+      , type
+      , ingredient
+      , cost
+      , grams
+      , lbs
+    )
+    values(
+      :mead_id
+      , :type
+      , :ingredient
+      , :cost
+      , :grams
+      , :lbs
+    );
+  ins_mead_note: |
+    insert into mead_notes (
+      mead_id
+      , note
+      , note_date
+    )
+    values (
+      :mead_id
+      , :note
+      , :note_date
+    );
+  updt_start_grav: |
+    update meads (
+      starting_gravity
+      , potential_abv
+    )
+    values (
+      :starting_gravity
+      , :potential_abv
+    );
+  get_mead_row: |
+    select *
     from meads
     where id = :mead_id;
-  updt_abv_meas_calcs: |
-    update abv_measurements
-      set
-        , curr_abv = :curr
-        , days_since_start = :days
-        , pct_to_pot_abv = :pct
-      where id = :id;

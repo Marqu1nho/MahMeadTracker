@@ -24,7 +24,7 @@ create table if not exists activity (
   , mead_id integer not null
   , act_name string not null
   , act_date date not null
-  , check (act_name in ('started','racked','bottled','modified','other'))
+  , check (act_name in ('started','racked','bottled','modified','end_at_1','ended_forced','other'))
   , foreign key(mead_id) references meads(id)
 );
 -- create table `abv_measurements`
@@ -47,6 +47,6 @@ create table if not exists ingredient_costs (
   , cost float not null
   , grams float not null
   , lbs float
-  , check (type in ('sugar_src','flavoring','back_sweeten','yeast'))
+  , check (type in ('sugar_src','spice','fuit','other_flavoring','back_sweeten','yeast'))
   , foreign key(mead_id) references meads(id)
   );

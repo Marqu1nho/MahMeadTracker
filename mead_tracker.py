@@ -1,3 +1,4 @@
+from collections import namedtuple
 from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
@@ -15,32 +16,26 @@ class MeadTracker:
         creates conn object
         """
         self.cfg = yaml.safe_load(Path("cfg.yml").read_text())
+        self.qrys = self.cfg["sql"]
+        self.abv_fct = 131.25
         self.conn: Connection = sqlite3.connect(f"./{self.db_name}")
         self.crs: Cursor = self.conn.cursor()
         self.init_ddl = Path(self.cfg["init_ddl"]).read_text()
-        self.run_init_cmds()
+        # register custom row factory
+        self.conn.row_factory = self.nt_factory
         # register custom functions
-        self.conn.create_function("fn_starting_gravity")
+        self.conn.create_function("trg_starting_grav", 2, self.trg_starting_grav)
+        # create initial ddl
+        self.run_init_cmds()
         pass
+
+    def nt_factory(crs, row):
+        hdrs = [h[0] for h in crs.description]
+        return namedtuple("SQLite3Row", hdrs)(*row)
 
     def run_script(self, script) -> Cursor:
         with self.conn:
             return self.conn.executescript(script)
-
-    def geg_single_val(self, cmd: str, fld_name: str) -> Cursor:
-        pass
-
-    def run_cmd(self, cmd: str, args: dict = None) -> Cursor:
-        """
-        run and commits a command
-        """
-        with self.conn:
-            return self.conn.execute(cmd, args)
-
-    def run_cfg_qry(self, qry_nm: str, args: dict = None) -> Cursor:
-        """ """
-        sql = self.cfg["sql"].get("qry_nm")
-        return self.run_cmd(sql, args)
 
     def run_init_cmds(self) -> None:
         """
@@ -49,20 +44,58 @@ class MeadTracker:
         """
         self.run_script(self.init_ddl)
 
-    def udf_starting_gravity_trigger(mead_id: int, str_grv: float) -> Cursor:
+    def run_cmd(self, cmd: str, args: dict = None) -> Cursor:
+        """
+        run and commits a command
+        """
+        with self.conn:
+            return self.conn.execute(cmd, args)
+
+    def ins_mead(self, mead_name, yeast_used, sugar_source):
+        qry = self.qrys["ins_new_mead"]
+        args = {
+            "mead_name": mead_name,
+            "yeast_used": yeast_used,
+            "sugar_source": sugar_source,
+        }
+        return self.run_cmd(qry, args)
+
+    def update_start_grav(self, mead_id, start_grav):
+        qry = self.qrys["updt_start_grav"]
+        args = {
+            "mead_id": mead_id,
+            "starting_gravity": start_grav,
+            "potential_abv": self.pot_abv(start_grav),
+        }
+        return self.run_cmd(qry, args)
+
+    def get_mead_row(self, mead_id) -> namedtuple:
+        qry, args = self.qrys["get_mead_row"], {"mead_id", mead_id}
+        return self.run_cmd(qry, args).fetchone()[0]
+
+    def trg_starting_grav(mead_id: int, str_grv: float) -> Cursor:
         """
         updates the activity table and abv_measurement table
         """
-        qrys = {
-            "ins_activity": {
-                "mead_id": mead_id,
-            },
-            "ins_abv_meas": {
-                "mead_id": mead_id,
-                "curr_grv": str_grv,
-            },
-        }
+        # insert abv_measurement
+
+    def pot_abv(self, start_grv):
+        return (start_grv - 1) * self.abv_fct
+
+    def curr_abv(self, mead_id, curr_grv):
+        str_grv = self.get_mead_row(mead_id).starting_gravity
+        return (str_grv - curr_grv) * self.abv_fct
 
 
 if __name__ == "__main__":
     mt = MeadTracker()
+    r = mt.ins_mead(
+        mead_name="Pear Blackberry Habanaero",
+        sugar_source="Costco Wildflower Honey",
+        yeast_used="K1-V1116",
+    )
+
+
+# TODO: set up a trigger to insert 1) abv_measurement 2) activity records
+# TODO: set up view to capture abv measurement
+# starting_grav, curr_grab, curr_abv, pot_abv, etc, etc
