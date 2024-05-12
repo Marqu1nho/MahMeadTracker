@@ -5,13 +5,11 @@ name = "pypi"
 
 [packages]
 jupyter = "*"
+pandas = "*"
 boto3 = "*"
-layertools = {editable = true, path = "./../../ScipherLayerTools"}
-pyaml = "*"
-apsw = "*"
+pyyaml = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
-python_full_version = "3.11.0"
+python_version = "3.12"
