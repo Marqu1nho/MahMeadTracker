@@ -73,15 +73,10 @@ sql:
       , :note
       , :note_date
     );
-  updt_start_grav: |
-    update meads (
-      starting_gravity
-      , potential_abv
-    )
-    values (
-      :starting_gravity
-      , :potential_abv
-    );
+  update_pot_abv: |
+    update meads
+      set potential_abv = :potential_abv
+      where id = :mead_id;
   get_mead_row: |
     select *
     from meads

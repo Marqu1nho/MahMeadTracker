@@ -15,6 +15,7 @@ class TgtMead:
 @dataclass
 class MeadTracker(SqliteHandler):
     db_name: str = "mah_dope_meads.db"
+    abv_fct: float = 131.25
     mead_id: int = None
     verbose: bool = True
 
@@ -25,7 +26,6 @@ class MeadTracker(SqliteHandler):
         super().__init__(db_path=self.db_name, verbose=self.verbose, *args, **krags)
         self.cfg = yaml.safe_load(Path("cfg.yml").read_text())
         self.qrys = self.cfg["sql"]
-        self.abv_fct = 131.25
         self.init_ddl = self.cfg["init_ddl"]
         # register custom functions
         self.conn.create_function("trg_starting_grav", 2, self.trg_starting_grav)
@@ -72,7 +72,7 @@ class MeadTracker(SqliteHandler):
                 "potential_abv": self.pot_abv(start_grav),
             },
         }
-        return self.run_cmd(**rqst)
+        return self.run_fetchall(**rqst)
 
     def get_mead_row(self, mead_id: int = None) -> namedtuple:
         m_id = self.mead_id if not mead_id else mead_id
@@ -83,18 +83,18 @@ class MeadTracker(SqliteHandler):
         rslt = self.run_cmd(**rqst).fetchone()
         return rslt
 
-    def trg_starting_grav(mead_id: int, str_grv: float) -> Cursor:
+    def trg_starting_grav(self, mead_id: int, str_grv: float) -> Cursor:
         """
-        inserts records into
-        - abv_measurement table
-        - activity table
-        - updates the potential gravity in the meads table for this record
+        - updates the potential gravity in the meads table for mead_id
+        - adds record to abv_measurement table
+        - adds record to activity table
         """
-        try:
-            # insert abv_measurement
-            print(f"called - {mead_id=}")
-        except Exception as e:
-            print(e)
+        print(f"new starting grav for {mead_id=}: {str_grv=}")
+        # update potential gravity
+        r = self.run_cmd(
+            cmd=self.qrys["update_pot_abv"],
+            args={"potential_abv": self.pot_abv(str_grv), "mead_id": mead_id},
+        )
 
     def pot_abv(self, start_grv):
         return (start_grv - 1) * self.abv_fct
@@ -107,16 +107,18 @@ class MeadTracker(SqliteHandler):
 def main():
     mt = MeadTracker(verbose=False)
     r = mt.ins_mead(
-        mead_name="Boo; Blackberry Habanaero",
+        mead_name="1Blackberry Habanaero",
         yeast_used="K1-V1116",
         sugar_source="Costco Wildflower Honey",
         starting_gravity=1.13,
     )
-    mt.get_mead_row(mead_id=1)
+    print("boo")
+    print(mt.get_mead_row(mead_id=1))
 
     # TODO:
     # TODO: set up view to capture abv measurement
     # starting_grav, curr_grab, curr_abv, pot_abv, etc, etc
+    # TODO: add proper loggin
 
 
 if __name__ == "__main__":
