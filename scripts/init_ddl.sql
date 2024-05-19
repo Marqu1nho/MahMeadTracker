@@ -49,3 +49,19 @@ create table if not exists ingredient_costs (
   , lbs float
   , foreign key(mead_id) references meads(id)
   );
+-- create after insert trigger on `meads` table
+create trigger after_insert_meads
+  after insert on meads
+  for each row
+  when new.starting_gravity is not null
+  begin
+    select trg_starting_grav(new.id,new.starting_gravity);
+  end;
+-- create after insert trigger on `meads` table
+create trigger after_insert_meads
+  after update of starting_gravity on meads
+  for each row
+  when new.starting_gravity is not null and old.starting_gravity is null
+  begin
+    select trg_starting_grav(new.id, new.starting_gravity);
+  end;
