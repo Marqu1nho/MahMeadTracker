@@ -4,11 +4,11 @@ from pathlib import Path
 import sqlite3
 from sqlite3 import Cursor, Connection
 import yaml
-from db_handler import DBHandler
+from db_handler import SqliteHandler
 
 
 @dataclass
-class MeadTracker(DBHandler):
+class MeadTracker(SqliteHandler):
 
     db_name: str = "mah_dope_meads.db"
 
@@ -16,7 +16,7 @@ class MeadTracker(DBHandler):
         """
         creates conn object
         """
-        self.db = DBHandler(db_name=self.db_name)
+        super().__init__(db_path=self.db_name)        
         self.cfg = yaml.safe_load(Path("cfg.yml").read_text())
         self.qrys = self.cfg["sql"]
         self.abv_fct = 131.25
