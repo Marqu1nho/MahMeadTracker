@@ -4,7 +4,7 @@ from pathlib import Path
 import sqlite3
 from sqlite3 import Cursor, Connection
 import yaml
-from db_handler import SqliteHandler
+from app.sqlite_handler import SqliteHandler
 
 
 @dataclass
