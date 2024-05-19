@@ -8,7 +8,7 @@ create table if not exists meads (
   , starting_gravity float
   , potential_abv float
   , yield_in_oz float
-  , unique(Mead_name, start_date)
+  , unique(mead_name, start_date)
 );
 -- create table `mead_notes`
 create table if not exists mead_notes (
