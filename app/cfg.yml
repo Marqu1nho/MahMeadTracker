@@ -6,12 +6,16 @@ sql:
       , start_date
       , yeast_used
       , sugar_source
+      , starting_gravity
+      , potential_abv
     )
     values (
       :mead_name
       , datetime('now')
       , :yeast_used
       , :sugar_source
+      , :starting_gravity
+      , :potential_abv
     );
   ins_abv_meas: |
     insert into abv_measurements (
