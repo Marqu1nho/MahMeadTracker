@@ -4,7 +4,7 @@ from pathlib import Path
 import sqlite3
 from sqlite3 import Cursor, Connection
 import yaml
-from app.sqlite_handler import SqliteHandler
+from sqlite_handler import SqliteHandler
 
 
 @dataclass
@@ -15,12 +15,14 @@ class TgtMead:
 @dataclass
 class MeadTracker(SqliteHandler):
     db_name: str = "mah_dope_meads.db"
+    mead_id: int = None
+    verbose: bool = True
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, *args, **krags) -> None:
         """
         creates conn object
         """
-        super().__init__(db_path=self.db_name)
+        super().__init__(db_path=self.db_name, verbose=self.verbose, *args, **krags)
         self.cfg = yaml.safe_load(Path("cfg.yml").read_text())
         self.qrys = self.cfg["sql"]
         self.abv_fct = 131.25
@@ -30,15 +32,25 @@ class MeadTracker(SqliteHandler):
         # run initial ddl commands
         self.run_script_file(self.init_ddl)
 
-    def ins_mead(self, mead_name, yeast_used, sugar_source, **kwargs):
+    def ins_mead(
+        self,
+        mead_name: str,
+        yeast_used: str,
+        sugar_source: str,
+        starting_gravity: float = None,
+        potential_abv: float = None,
+    ):
         rqst = {
             "cmd": self.qrys["ins_new_mead"],
             "args": {
                 "mead_name": mead_name,
                 "yeast_used": yeast_used,
                 "sugar_source": sugar_source,
+                "starting_gravity": starting_gravity,
+                "potential_abv": potential_abv,
             },
         }
+        # update if any others fields were passed in
         self.run_cmd(**rqst)
         # set the row_id of the last inserted row
         self.set_active_mead_id(self.crs.lastrowid)
@@ -78,8 +90,11 @@ class MeadTracker(SqliteHandler):
         - activity table
         - updates the potential gravity in the meads table for this record
         """
-        # insert abv_measurement
-        print(f"called - {mead_id=}")
+        try:
+            # insert abv_measurement
+            print(f"called - {mead_id=}")
+        except Exception as e:
+            print(e)
 
     def pot_abv(self, start_grv):
         return (start_grv - 1) * self.abv_fct
@@ -89,15 +104,20 @@ class MeadTracker(SqliteHandler):
         return (str_grv - curr_grv) * self.abv_fct
 
 
-if __name__ == "__main__":
-    mt = MeadTracker()
+def main():
+    mt = MeadTracker(verbose=False)
     r = mt.ins_mead(
         mead_name="Boo; Blackberry Habanaero",
         yeast_used="K1-V1116",
         sugar_source="Costco Wildflower Honey",
+        starting_gravity=1.13,
     )
     mt.get_mead_row(mead_id=1)
 
-# TODO:
-# TODO: set up view to capture abv measurement
-# starting_grav, curr_grab, curr_abv, pot_abv, etc, etc
+    # TODO:
+    # TODO: set up view to capture abv measurement
+    # starting_grav, curr_grab, curr_abv, pot_abv, etc, etc
+
+
+if __name__ == "__main__":
+    main()
