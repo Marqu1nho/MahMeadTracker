@@ -8,21 +8,25 @@ from db_handler import SqliteHandler
 
 
 @dataclass
-class MeadTracker(SqliteHandler):
+class TgtMead:
+    db: Connection
 
+
+@dataclass
+class MeadTracker(SqliteHandler):
     db_name: str = "mah_dope_meads.db"
 
     def __post_init__(self) -> None:
         """
         creates conn object
         """
-        super().__init__(db_path=self.db_name)        
+        super().__init__(db_path=self.db_name)
         self.cfg = yaml.safe_load(Path("cfg.yml").read_text())
         self.qrys = self.cfg["sql"]
         self.abv_fct = 131.25
         self.init_ddl = Path(self.cfg["init_ddl"]).read_text()
         # register custom functions
-        self.db.conn.create_function("trg_starting_grav", 2, self.trg_starting_grav)
+        self.conn.create_function("trg_starting_grav", 2, self.trg_starting_grav)
         # run initial ddl commands
         self.db.run_script(self.init_ddl)
 
@@ -83,6 +87,11 @@ class MeadTracker(SqliteHandler):
 
 if __name__ == "__main__":
     mt = MeadTracker()
+    mt.run_cmd(
+        """
+
+    """
+    )
     r = mt.ins_mead(
         mead_name="Boo; Blackberry Habanaero",
         sugar_source="Costco Wildflower Honey",
