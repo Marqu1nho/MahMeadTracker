@@ -7,8 +7,17 @@ create table if not exists meads (
   , sugar_source string not null
   , starting_gravity float
   , potential_abv float
-  , yield_in_oz float
   , unique(mead_name, start_date)
+);
+-- create table `results`
+create table if not exists results (
+  id integer primary key
+  , mead_id integer not null
+  , total_cost float
+  , yield_in_oz float
+  , cost_per_oz float
+  , days_in_primary integer
+  , days_in_secondary integer
 );
 -- create table `mead_notes`
 create table if not exists mead_notes (

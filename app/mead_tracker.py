@@ -73,7 +73,10 @@ class MeadTracker(SqliteHandler):
 
     def trg_starting_grav(mead_id: int, str_grv: float) -> Cursor:
         """
-        updates the activity table and abv_measurement table
+        inserts records into
+        - abv_measurement table
+        - activity table
+        - updates the potential gravity in the meads table for this record
         """
         # insert abv_measurement
 
@@ -87,11 +90,6 @@ class MeadTracker(SqliteHandler):
 
 if __name__ == "__main__":
     mt = MeadTracker()
-    mt.run_cmd(
-        """
-
-    """
-    )
     r = mt.ins_mead(
         mead_name="Boo; Blackberry Habanaero",
         sugar_source="Costco Wildflower Honey",
@@ -100,6 +98,5 @@ if __name__ == "__main__":
     mt.get_mead_row(mead_id=1)
 
 # TODO:
-# TODO: set up a trigger to insert 1) abv_measurement 2) activity records
 # TODO: set up view to capture abv measurement
 # starting_grav, curr_grab, curr_abv, pot_abv, etc, etc
