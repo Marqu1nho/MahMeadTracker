@@ -30,7 +30,7 @@ class MeadTracker(SqliteHandler):
         # run initial ddl commands
         self.run_script_file(self.init_ddl)
 
-    def ins_mead(self, mead_name, yeast_used, sugar_source):
+    def ins_mead(self, mead_name, yeast_used, sugar_source, **kwargs):
         rqst = {
             "cmd": self.qrys["ins_new_mead"],
             "args": {
@@ -39,9 +39,9 @@ class MeadTracker(SqliteHandler):
                 "sugar_source": sugar_source,
             },
         }
-        self.db.run_cmd(**rqst)
+        self.run_cmd(**rqst)
         # set the row_id of the last inserted row
-        self.set_active_mead_id(self.db.crs.lastrowid)
+        self.set_active_mead_id(self.crs.lastrowid)
         return
 
     def ins_abv_mead(self, mead_id):
@@ -60,7 +60,7 @@ class MeadTracker(SqliteHandler):
                 "potential_abv": self.pot_abv(start_grav),
             },
         }
-        return self.db.run_cmd(**rqst)
+        return self.run_cmd(**rqst)
 
     def get_mead_row(self, mead_id: int = None) -> namedtuple:
         m_id = self.mead_id if not mead_id else mead_id
@@ -68,7 +68,7 @@ class MeadTracker(SqliteHandler):
             "cmd": self.qrys["get_mead_row"],
             "args": {"mead_id": m_id},
         }
-        rslt = self.db.run_cmd(**rqst).fetchone()
+        rslt = self.run_cmd(**rqst).fetchone()
         return rslt
 
     def trg_starting_grav(mead_id: int, str_grv: float) -> Cursor:
@@ -79,6 +79,7 @@ class MeadTracker(SqliteHandler):
         - updates the potential gravity in the meads table for this record
         """
         # insert abv_measurement
+        print(f"called - {mead_id=}")
 
     def pot_abv(self, start_grv):
         return (start_grv - 1) * self.abv_fct
@@ -92,8 +93,8 @@ if __name__ == "__main__":
     mt = MeadTracker()
     r = mt.ins_mead(
         mead_name="Boo; Blackberry Habanaero",
-        sugar_source="Costco Wildflower Honey",
         yeast_used="K1-V1116",
+        sugar_source="Costco Wildflower Honey",
     )
     mt.get_mead_row(mead_id=1)
 
