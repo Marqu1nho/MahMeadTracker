@@ -41,21 +41,6 @@ sql:
       , :act_name
       , datetime('now')
     );
-  ins_abv_meas: |
-    insert into abv_measurement (
-      mead_id
-      , sample_date
-      , curr_gravity
-      , days_since_start
-      , pct_to_post_abv
-    )
-    values (
-      :mead_id
-      , datetime('now')
-      , :curr_grv
-      , :days_since_start
-      , :pct_to_post_abv
-    );
   ins_mead_ingredient_cost: |
     inset into ingredient_costs (
       mead_id
