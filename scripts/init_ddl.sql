@@ -47,6 +47,5 @@ create table if not exists ingredient_costs (
   , cost float not null
   , grams float not null
   , lbs float
-  , check (type in ('sugar_src','spice','fuit','other_flavoring','back_sweeten','yeast'))
   , foreign key(mead_id) references meads(id)
   );
