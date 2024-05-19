@@ -24,11 +24,11 @@ class MeadTracker(SqliteHandler):
         self.cfg = yaml.safe_load(Path("cfg.yml").read_text())
         self.qrys = self.cfg["sql"]
         self.abv_fct = 131.25
-        self.init_ddl = Path(self.cfg["init_ddl"]).read_text()
+        self.init_ddl = self.cfg["init_ddl"]
         # register custom functions
         self.conn.create_function("trg_starting_grav", 2, self.trg_starting_grav)
         # run initial ddl commands
-        self.db.run_script(self.init_ddl)
+        self.run_script_file(self.init_ddl)
 
     def ins_mead(self, mead_name, yeast_used, sugar_source):
         rqst = {

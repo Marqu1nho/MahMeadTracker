@@ -104,7 +104,8 @@ class SqliteHandler:
         """
         if self.verbose:
             print(f"{script_file=}")
-        self.run_script_str(script=script_file.read_text())
+        fl: Path = script_file if isinstance(script_file, Path) else Path(script_file)
+        self.run_script_str(script=fl.read_text())
 
     def close_db(self) -> None:
         """

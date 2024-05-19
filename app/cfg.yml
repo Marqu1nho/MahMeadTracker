@@ -1,4 +1,4 @@
-init_ddl: ./scripts/init_ddl.sql
+init_ddl: ../scripts/init_ddl.sql
 sql:
   ins_new_mead: |
     insert into meads(
